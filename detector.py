@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import argparse
 import csv
+import math
 import os
 import sys
 from models.SchoolModel import SchoolModel
@@ -51,7 +52,6 @@ def load_model(id):
 	r = load_csv(os.path.join(DETECTOR_ROOT, str(id) + '-R.csv'), RouteModel)
 	if (e is None) or (p is None) or (r is None):
 		return None
-
 	return Model(e, p, r)
 
 
@@ -70,7 +70,7 @@ def validate_model_school_capacity(model):
 			stop = model.bus_stops[r.bus_stop_id]
 			for c in stop.c.items():
 				student_counts[r.alloc_id][c[0]] += c[1]
-	#validate
+	# validate
 	for school in model.schools.values():
 		for c in school.c.items():
 			if student_counts[school.school_id][c[0]] > c[1]:
@@ -87,29 +87,63 @@ def validate_model_bus_stops_in_route(model):
 	"""All bus stops must belong to a route"""
 	errors = []
 	valid_stops = set()
-	#count valid bus_stops
+	# count valid bus_stops
 	for route in model.routes.values():
 		for r in route:
 			valid_stops.add(r.bus_stop_id)
-	#validate
+	# validate
 	for stop in model.bus_stops.values():
 		if not valid_stops.issuperset([stop.bus_stop_id]):
-			errors.append("bus stop {0} doesn't belong to any route.".format(stop.bus_stop_id))
+			errors.append("Error: Bus stop {0} doesn't belong to any route.".format(stop.bus_stop_id))
 	return errors
 
 
 def validate_model_max_route_length(model):
 	"""All routes are under 35km in length"""
 	errors = []
-	#TODO
+	for route in model.routes.values():
+		# calculate distance
+		distance = 0
+		i = 0
+		if len(route) > 1:
+			for i in range(1, len(route)):
+				distance += dist_harvesine(model.bus_stops[route[i-1].bus_stop_id].location, 
+											model.bus_stops[route[i].bus_stop_id].location)
+		distance += dist_harvesine(model.bus_stops[route[i].bus_stop_id].location, 
+									model.schools[route[i].alloc_id].location)
+		# validate
+		if distance > 35:
+			errors.append("Error: Route {0} is {1} km long (max: 35 km)".format(route[0].route_id, distance))
 	return errors
 
 
 def validate_model_max_bus_capacity(model):
 	"""Students in a route must not exceed 45 students"""
 	errors = []
-	#TODO
+	for route in model.routes.values():
+		# count students in route
+		student_count = 0
+		for r in route:
+			student_count += sum(model.bus_stops[r.bus_stop_id].c.values())
+		# validate
+		if student_count > 45:
+			errors.append("Error: Route {0} has {1} students in a bus (max: 45)".format(route[0].route_id, student_count))
 	return errors
+
+
+def dist_harvesine(origin_coords, destination_coords):
+	"""Distance between 2 objects"""
+	lat1, lon1 = origin_coords
+	lat2, lon2 = destination_coords
+	radius = 6371 # km
+
+	dlat = math.radians(lat2-lat1)
+	dlon = math.radians(lon2-lon1)
+	a = math.sin(dlat/2) * math.sin(dlat/2) + math.cos(math.radians(lat1)) \
+		* math.cos(math.radians(lat2)) * math.sin(dlon/2) * math.sin(dlon/2)
+	c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+	d = radius * c
+	return d
 
 
 def validate_model(model):
@@ -119,15 +153,17 @@ def validate_model(model):
 						validate_model_max_route_length,
 						validate_model_max_bus_capacity]
 
+	success = True
 	for f in validation_funcs:
 		errors = f(model)
 		if errors:
 			for e in errors:
 				print(e)
-			return False
+			success = False
 
-	print("ALL TESTS PASSED")
-	return True
+	if success:
+		print("ALL TESTS PASSED")
+	return success
 
 
 def merge_model(model):

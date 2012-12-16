@@ -18,3 +18,6 @@ class Model:
 				self.routes[route.route_id].append(route)
 			else:
 				self.routes[route.route_id] = [route]
+		#sort routes by order
+		for route in self.routes.values():
+			route.sort(key = lambda r: r.order)
