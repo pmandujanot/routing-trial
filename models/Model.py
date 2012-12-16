@@ -14,4 +14,7 @@ class Model:
 		for bus_stop in p:
 			self.bus_stops[bus_stop.bus_stop_id] = bus_stop
 		for route in r:
-			self.routes[route.route_id] = route
+			if self.routes.has_key(route.route_id):
+				self.routes[route.route_id].append(route)
+			else:
+				self.routes[route.route_id] = [route]

@@ -3,8 +3,8 @@ class RouteModel:
 	"""Represents a route"""
 
 	def __init__(self):
-		self.route_id = 0
 		self.bus_stop_id = 0
+		self.route_id = 0
 		self.alloc_id = 0
 		self.order = 0
 

@@ -66,9 +66,10 @@ def validate_model_school_capacity(model):
 			student_counts[school.school_id][c] = 0
 	# count students in stops
 	for route in model.routes.values():
-		stop = model.bus_stops[route.bus_stop_id]
-		for c in stop.c.items():
-			student_counts[route.alloc_id][c[0]] += c[1]
+		for r in route:
+			stop = model.bus_stops[r.bus_stop_id]
+			for c in stop.c.items():
+				student_counts[r.alloc_id][c[0]] += c[1]
 	#validate
 	for school in model.schools.values():
 		for c in school.c.items():
@@ -85,7 +86,15 @@ def validate_model_school_capacity(model):
 def validate_model_bus_stops_in_route(model):
 	"""All bus stops must belong to a route"""
 	errors = []
-	#TODO
+	valid_stops = set()
+	#count valid bus_stops
+	for route in model.routes.values():
+		for r in route:
+			valid_stops.add(r.bus_stop_id)
+	#validate
+	for stop in model.bus_stops.values():
+		if not valid_stops.issuperset([stop.bus_stop_id]):
+			errors.append("bus stop {0} doesn't belong to any route.".format(stop.bus_stop_id))
 	return errors
 
 
