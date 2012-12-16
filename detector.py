@@ -3,6 +3,7 @@ import argparse
 import csv
 import math
 import os
+import re
 import sys
 from models.SchoolModel import SchoolModel
 from models.BusStopModel import BusStopModel
@@ -190,6 +191,13 @@ if __name__ == '__main__':
 	load_envvars()
 
 	if args.id is None:
-		sys.exit('Mising --id') # TODO (for each file in dir...)
+		# run on all ids on DETECTOR_ROOT
+		filenames = os.listdir(DETECTOR_ROOT)
+		filenames.sort()
+		for f in filenames:
+			match = re.search(r"(\d+)-E\.csv", f)
+			if match:
+				main(match.group(1))
+
 	else:
 		main(args.id)
