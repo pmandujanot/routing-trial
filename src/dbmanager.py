@@ -61,41 +61,88 @@ class DatabaseManager:
 		db = self.get_db_instance()
 		cursor = db.cursor()
 
-		bucketNumber = 0
+		bucketNumber = -1
 
-		cursor.execute("select distinct bucket from Paradero")
-		buckets = cursor.fetchall()
-		for bucket in buckets:
-			bucketMatch = re.match(r"[\w\-_]+(\d+)", bucket[0])
-			currentBucketNumber = int(bucketMatch.group(1))
+		for tableName in ["Paradero", "Escuela", "Ruta"]:
+			cursor.execute("select distinct bucket from " + tableName)
+			buckets = cursor.fetchall()
+			for bucket in buckets:
+				bucketMatch = re.match(r"[\w\-_]+(\d+)", bucket[0])
+				currentBucketNumber = int(bucketMatch.group(1))
 
-			if bucketNumber < currentBucketNumber:
-				bucketNumber = currentBucketNumber
-
-		cursor.execute("select distinct bucket from Escuela")
-		buckets = cursor.fetchall()
-		for bucket in buckets:
-			bucketMatch = re.match(r"[\w\-_]+(\d+)", bucket[0])
-			currentBucketNumber = int(bucketMatch.group(1))
-
-			if bucketNumber < currentBucketNumber:
-				bucketNumber = currentBucketNumber
-
-		cursor.execute("select distinct bucket from Paradero")
-		buckets = cursor.fetchall()
-		for bucket in buckets:
-			bucketMatch = re.match(r"[\w\-_]+(\d+)", bucket[0])
-			currentBucketNumber = int(bucketMatch.group(1))
-
-			if bucketNumber < currentBucketNumber:
-				bucketNumber = currentBucketNumber
+				if bucketNumber < currentBucketNumber:
+					bucketNumber = currentBucketNumber
 
 		bucketNumber += 1
-
-		self.bucketNumber = bucketNumber
 		db.close()
 
+		self.bucketNumber = bucketNumber - 1
 		return bucketNumber
+
+
+	def load_data_from_database(self):
+		db = self.get_db_instance()
+		cursor = db.cursor()
+
+		#Get the schools from the database
+		schoolSQL = "select * from Escuela where bucket = '%s' " % ("SCHOOL_LOAD_" + str(self.bucketNumber))
+		cursor.execute(schoolSQL)
+		schoolRows = cursor.fetchall()
+
+		schoolsList = []
+		for row in schoolRows:
+			#Get the class capacity list
+			classCapacity = [row[4], row[5], row[6], row[7]]
+
+			#Create the object
+			school = model.School(row[0], row[1], row[2], row[3], classCapacity)
+
+			#Add the object to the list
+			schoolsList.append(school)
+
+
+		#Get the Bus Stops from the database
+		busstopSQL = "select * from Paradero where bucket = '%s' " % ("BUSSTOP_LOAD_" + str(self.bucketNumber))
+		cursor.execute(busstopSQL)
+		busStopRows = cursor.fetchall()
+
+		busStopsList = []
+		for row in busStopRows:
+			#Get the the students of each class waiting for the bus
+			studentsOnClass = [row[4], row[5], row[6], row[7]]
+
+			#Create the object
+			busStop = model.BusStop(row[0], row[1], row[2], row[3], studentsOnClass)
+
+			#Add the object to the list
+			busStopsList.append(busStop)
+
+
+		#Get the Bus Stops from the database
+		routesSQL = "select * from Ruta where bucket = '%s' " % ("ROUTES_LOAD_" + str(self.bucketNumber))
+		cursor.execute(routesSQL)
+		routesRows = cursor.fetchall()
+
+		routesList = []
+		for row in routesRows:
+			#Create the object
+			route = model.Route(row[1], row[0], row[2], row[3])
+
+			#Add the object to the list
+			routesList.append(route)
+
+
+		#Process the data:
+		from processor import process_data
+		process_data(busStopsList, schoolsList, routesList)
+
+
+		db.close()
+
+		return schoolsList
+
+
+
 
 
 

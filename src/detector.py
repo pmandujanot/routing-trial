@@ -38,7 +38,7 @@ else:
 dbManager = dbmanager.DatabaseManager(DATABASE_SERVER, DATABASE_USERNAME, DATABASE_PASSWORD)
 dbManager.get_new_bucket_number()
 
-#For each data-id, process data, validate it and merge it to the database.
+#For each data-id, process data, validate it and merg it to the database.
 for dataID in dataIDs:
 
 	try:
@@ -51,11 +51,15 @@ for dataID in dataIDs:
 		print "All tests passed."
 
 		#Get data from database
+		dbSchoolsList = dbManager.load_data_from_database()
 
 		#Merge data
+		
+
+		
 		#print schoolList
 		#Save back to the database the modified data
-		dbManager.store_data(schoolList)
+		#dbManager.store_data(schoolList)
 
 
 	except Exception as e:
