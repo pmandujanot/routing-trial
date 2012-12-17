@@ -3,6 +3,7 @@ import sys #Command line arguments
 import util 
 import processor
 import validator
+import dbmanager
 
 
 #Get the proyect id
@@ -29,12 +30,15 @@ DETECTOR_ROOT = util.get_path_from_env("DETECTOR_ROOT", "../data")
 #Get the proyect ids
 dataIDs = None
 if DATA_ID is None:
-	dataIDs = util.get_all_proyect_ids_on_folder(DETECTOR_ROOT)
+	dataIDs = util.get_all_data_ids_on_folder(DETECTOR_ROOT)
 else:
 	dataIDs = set([DATA_ID])
 
+#Instance database manager
+dbManager = dbmanager.DatabaseManager(DATABASE_SERVER, DATABASE_USERNAME, DATABASE_PASSWORD)
+dbManager.get_new_bucket_number()
 
-#For each data-id, process data, validate it and add it to the database.
+#For each data-id, process data, validate it and merge it to the database.
 for dataID in dataIDs:
 
 	try:
@@ -44,10 +48,14 @@ for dataID in dataIDs:
 
 		#Validate the data:
 		validator.validate_data(busStopsList, schoolList, routesList)
-		print "All testes passed."
+		print "All tests passed."
 
-		#Connect to the database
+		#Get data from database
 
+		#Merge data
+		#print schoolList
+		#Save back to the database the modified data
+		dbManager.store_data(schoolList)
 
 
 	except Exception as e:
@@ -56,5 +64,9 @@ for dataID in dataIDs:
 
 	
 
-
+#La idea podria ser que yo cargo de la base de datos, luego todas las cosas que cambiaron, como los tengo en objeto, podrias tener un bit dirty. luego con
+#eso se si las tengo que guardar a la base de datos o no. Esto es porque si el nuevo archivo que estoy cargando sobreescribe el nombre de un colegio o algo asi
+#al finla asumire que lo que manda son los parametros del rpimary key. 
+#Otra cosa importante es que cuando haga el merge es necesario agregar las nuevos datos que van apareciendo, por ejemplo una nueva ruta.
+#y si el numero de la ruta ya existe entonces se agrega reemplaza por la nueva ruta. Ahi hayq ue ver bien que se hace..
 

@@ -86,6 +86,10 @@ def process_bus_stops(busStopsFilePath):
 
 			#Add the busttop to the 
 			if busStop is not None:
+				busstopsForID = [x for x in busStopsList if x.bs_id == busStop.bs_id]
+				if len(busstopsForID) > 0:
+					for x in busstopsForID:
+						busStopsList.remove(x)
 				busStopsList.append(busStop)
 
 
@@ -136,8 +140,12 @@ def process_schools(schoolsFilePath):
 
 			#print school
 
-			#Add the school to the 
+			#Add the school to the list, replacing any previous school
 			if school is not None:
+				schoolsForID = [x for x in schoolList if x.s_id == school.s_id]
+				if len(schoolsForID) > 0:
+					for x in schoolsForID:
+						schoolList.remove(x)
 				schoolList.append(school)
 
 
@@ -186,7 +194,7 @@ def process_routes(routessFilePath):
 
 			#print route
 
-			#Add the route to the 
+			#Add the route to the list
 			if route is not None:
 				routesList.append(route)
 

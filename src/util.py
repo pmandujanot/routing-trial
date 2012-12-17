@@ -30,7 +30,7 @@ def convert_int(intNum):
 		exit(1)
 
 
-def get_all_proyect_ids_on_folder(folderPath):
+def get_all_data_ids_on_folder(folderPath):
     #Get all filenames on folder:
     fileNames = [f for f in os.listdir(folderPath) if os.path.isfile(os.path.join(folderPath,f))]
     
