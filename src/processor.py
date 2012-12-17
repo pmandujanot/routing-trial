@@ -13,14 +13,30 @@ def process_files(directory, proyect_id):
 	routesFilePath = os.path.join(directory, str(proyect_id) + "-R.csv")
 
 	#Parse files
+	busStopsList = None
+	schoolList = None
+	routesList = None
+
 	if os.path.isfile(busStopsFilePath):
-		process_bus_stops(busStopsFilePath)
+		busStopsList = process_bus_stops(busStopsFilePath)
 
 	if os.path.isfile(schoolsFilePath):
-		process_schools(schoolsFilePath)
+		schoolList = process_schools(schoolsFilePath)
 
 	if os.path.isfile(routesFilePath):
-		process_routes(routesFilePath)
+		routesList = process_routes(routesFilePath)
+
+	#Check if the files are OK
+	if (busStopsList is not None) and (schoolList is not None) and (routesList is not None):
+
+		#Process the data:
+		process_data(busStopsList, schoolList, routesList)
+
+		#Check if everything is OK
+
+		return busStopsList, schoolList, routesList #{"busStops": busStopsList, "schools": schoolList, "routes": routesList}
+	else:
+		print "excepcion"
 
 
 #Process bus stops
@@ -52,22 +68,23 @@ def process_bus_stops(busStopsFilePath):
 				longitude = float(locationMatch.group('longitude'))
 
 				#Add the rest of the classes
-				classes = [int(row["#C1"]), int(row["#C2"]), int(row["#C3"]), int(row["#C4"])]
+				studentsOnClass = [int(row["#C1"]), int(row["#C2"]), int(row["#C3"]), int(row["#C4"])]
 
 				#Create the object
-				busStop = model.BusStop(bs_id, latitude, longitude, name, classes)
+				busStop = model.BusStop(bs_id, latitude, longitude, name, studentsOnClass)
 
 			except Exception as e:
+				print row
 				print e
 
 			#print busStop
 
 			#Add the busttop to the 
-			if busStop != None:
+			if busStop is not None:
 				busStopsList.append(busStop)
 
 
-		print busStopsList;
+		#print busStopsList;
 
 		return busStopsList
 
@@ -83,7 +100,7 @@ def process_schools(schoolsFilePath):
 			#if len(row) == 0:
 			#	continue
 			
-			#Check each of the busstop's parameters and create the busstop
+			#Check each of the school's parameters and create the busstop
 			school = None
 			try:
 				#Get the ID
@@ -104,16 +121,17 @@ def process_schools(schoolsFilePath):
 				school = model.School(s_id, latitude, longitude, name, classCapacity)
 				
 			except Exception as e:
+				print row
 				print e
 
 			#print school
 
 			#Add the school to the 
-			if school != None:
+			if school is not None:
 				schoolList.append(school)
 
 
-		print schoolList;
+		#print schoolList;
 
 		return schoolList
 
@@ -129,40 +147,78 @@ def process_routes(routessFilePath):
 			#if len(row) == 0:
 			#	continue
 			
-			#Check each of the busstop's parameters and create the busstop
+			#Check each of the route's parameters and create the busstop
 			route = None
 			try:
-				#Get the ID
+				#Get the ROUTE ID
 				r_id = int(row["ROUTE"])
 
-				#Get the ID
+				#Get the BUSSTOP ID
 				bs_id = int(row["ID"])
 
-				#Get the ID
+				#Get the SCHOOL ID
 				s_id = int(row["ALLOC"])
 
-				#Get the ID
+				#Get the ORDER
 				order = int(row["ORDER"])
 
 				#Create the object
 				route = model.Route(r_id, bs_id, s_id, order)
 				
 			except Exception as e:
+				print row
 				print e
 
 			#print route
 
 			#Add the route to the 
-			if route != None:
+			if route is not None:
 				routesList.append(route)
 
 
-		print routesList;
+		#print routesList;
 
 		return routesList
 
 
 
+def process_data(busStopsList, schoolList, routesList):
+	#Process routes list and check if each route's busstop exists:
+	for route in routesList:
+		busStops = filter(lambda busStop: busStop.bs_id == route.bs_id, busStopsList)
+
+		if len(busStops) == 1:
+			route.busStop = busStops[0]
+		else:
+			print "The number of busstops for the route data doesn't match"
+			exit(1)
+
+	#Process all the schools and add the routes
+	for school in schoolList:
+		#Get all the routes for this school
+		routes = filter(lambda route: route.s_id == school.s_id, routesList)
+
+		#Split routes using route id
+		routesDict = {}
+		for route in routes:
+			if route.r_id not in routesDict.keys():
+				routesDict[route.r_id] = [route]
+			else:
+				routesDict[route.r_id].append(route)
+
+
+		#print routesDict
+
+		#Sort all routes using the value of the order parameter
+		for routeList in  routesDict.values():	
+			routeList.sort(key = lambda route: route.order)
+
+		#TODO: check that the route order numbers are concecutive, if they are not, maybe a route number is missing.
+
+		#Add the routes to the school
+		school.routes = routesDict
+
+		#print routes
 
 
 
@@ -170,11 +226,13 @@ def process_routes(routessFilePath):
 
 
 
-			#ahora que estoy abriendo el archivo y viendo las filas, tengo que ver dos cosas:
-			#parsear que los elementos en cada ppsicion esten bien (con regex supongo, por ejemplo para las coordenadas gps (las comillas y el ;))
-			#ver que el numero de elementos sea el correcto.
-			#con respeco a oop, cada una de las entradas de esta tabla puede ser un objeto de una clase que represente un paradero. Quiza el mismo objeto puede saber como parsearse a si mismo de la lista y crearse correctamente.
-			#en vez de imprimr en stdr y apagar el programa podria lanzar una excepcion la cual detector analizara y podra botar el programa si corresponde.
+
+
+#ahora que estoy abriendo el archivo y viendo las filas, tengo que ver dos cosas:
+#parsear que los elementos en cada ppsicion esten bien (con regex supongo, por ejemplo para las coordenadas gps (las comillas y el ;))
+#ver que el numero de elementos sea el correcto.
+#con respeco a oop, cada una de las entradas de esta tabla puede ser un objeto de una clase que represente un paradero. Quiza el mismo objeto puede saber como parsearse a si mismo de la lista y crearse correctamente.
+#en vez de imprimr en stdr y apagar el programa podria lanzar una excepcion la cual detector analizara y podra botar el programa si corresponde.
 
 
 
