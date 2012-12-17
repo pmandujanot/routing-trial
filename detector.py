@@ -9,6 +9,7 @@ from models.SchoolModel import SchoolModel
 from models.BusStopModel import BusStopModel
 from models.RouteModel import RouteModel
 from models.Model import Model
+from models import ModelStorage
 
 
 def load_envvars():
@@ -167,10 +168,12 @@ def validate_model(model):
 	return success
 
 
-def merge_model(model):
-	"""Insert into DB"""
+def merge_model(model, bucket):
+	"""Insert model into DB"""
 	print("MERGING...")
-	# TODO
+	engine = ModelStorage.get_db_engine(DATABASE_SERVER, DATABASE_USERNAME, DATABASE_PASSWORD, DATABASE_TYPE)
+	metadata = ModelStorage.initialize_metadata(engine)
+	ModelStorage.upsert_model(engine, metadata, model, bucket)
 	print("OK")
 	return True
 
@@ -180,7 +183,7 @@ def main(id):
 	model = load_model(id)
 	if model is not None:
 		if validate_model(model):
-			merge_model(model)
+			merge_model(model, 'ROUTE_LOAD_' + str(id))
 
 
 if __name__ == '__main__':
