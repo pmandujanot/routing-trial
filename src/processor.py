@@ -6,11 +6,11 @@ import re
 
 
 #Process files
-def process_files(directory, proyect_id):
+def process_files(directory, data_id):
 	#Get the filenames for the current proyect id
-	busStopsFilePath = os.path.join(directory, str(proyect_id) + "-P.csv")
-	schoolsFilePath = os.path.join(directory, str(proyect_id) + "-E.csv")
-	routesFilePath = os.path.join(directory, str(proyect_id) + "-R.csv")
+	busStopsFilePath = os.path.join(directory, str(data_id) + "-P.csv")
+	schoolsFilePath = os.path.join(directory, str(data_id) + "-E.csv")
+	routesFilePath = os.path.join(directory, str(data_id) + "-R.csv")
 
 	#Parse files
 	busStopsList = None
@@ -36,7 +36,7 @@ def process_files(directory, proyect_id):
 
 		return busStopsList, schoolList, routesList #{"busStops": busStopsList, "schools": schoolList, "routes": routesList}
 	else:
-		print "excepcion"
+		raise Exception("Error: No estan presentes los tres archivos con id: " + str(data_id))
 
 
 #Process bus stops
@@ -74,8 +74,13 @@ def process_bus_stops(busStopsFilePath):
 				busStop = model.BusStop(bs_id, latitude, longitude, name, studentsOnClass)
 
 			except Exception as e:
-				print row
-				print e
+				raiseException = False
+				for string in row.values():
+					if string is not "":
+						raiseException = True
+
+				if raiseException:
+					raise Exception("Error: Error parseando la parada de bus: " + str(row))
 
 			#print busStop
 
@@ -121,8 +126,13 @@ def process_schools(schoolsFilePath):
 				school = model.School(s_id, latitude, longitude, name, classCapacity)
 				
 			except Exception as e:
-				print row
-				print e
+				raiseException = False
+				for string in row.values():
+					if string is not "":
+						raiseException = True
+
+				if raiseException:
+					raise Exception("Error: Error parseando la escuela: " + str(row))
 
 			#print school
 
@@ -166,8 +176,13 @@ def process_routes(routessFilePath):
 				route = model.Route(r_id, bs_id, s_id, order)
 				
 			except Exception as e:
-				print row
-				print e
+				raiseException = False
+				for string in row.values():
+					if string is not "":
+						raiseException = True
+
+				if raiseException:
+					raise Exception("Error: Error parseando la parada de ruta: " + str(row))
 
 			#print route
 
@@ -190,8 +205,7 @@ def process_data(busStopsList, schoolList, routesList):
 		if len(busStops) == 1:
 			route.busStop = busStops[0]
 		else:
-			print "The number of busstops for the route data doesn't match"
-			exit(1)
+			raise Exception("Error: The route " + str(route.r_id) + "is related to an incorrect number of bus stops.")
 
 	#Process all the schools and add the routes
 	for school in schoolList:

@@ -34,8 +34,7 @@ def validate_amount_of_children_on_class(schoolList):
 
 		for i in range(0,4):
 			if studentsWaitingForClass[i] > school.classCapacity[i]:
-				print "Error: Cantidad de alumnos (" + str(studentsWaitingForClass[i]) + ") supera la capacidad de la clase #C" + str(i+1) + " de la escuela " + school.name + "."
-				exit(1)
+				raise Exception("Error: Cantidad de alumnos (" + str(studentsWaitingForClass[i]) + ") supera la capacidad de la clase #C" + str(i+1) + " de la escuela " + school.name + ".")
 
 
 
@@ -56,8 +55,7 @@ def validate_bus_stops_on_routes(busStopsList, schoolList):
 		for busStop in busStops:
 			description += "\t-" + str(busStop.bs_id)
 
-		print description
-		exit(1)
+		raise Exception(description)
 
 
 def validate_route_length(schoolList):
@@ -79,8 +77,7 @@ def validate_route_length(schoolList):
 				routeDistance += harvesine_distance([school.latitude,school.longitude],[previousBusStop.latitude,previousBusStop.longitude])
 
 			if routeDistance > 35000:
-				print "Error: Ruta " + str(routeID) + " de la escuela " + school.name + " es mayor a 35KM (" + str(routeDistance/1000) + ")"
-				exit(1)
+				raise Exception("Error: Ruta " + str(routeID) + " de la escuela " + school.name + " es mayor a 35KM (" + str(routeDistance/1000) + ")")
 
 
 #Position a and b are in [latitude, longitude]
@@ -111,8 +108,7 @@ def validate_amount_of_children_on_bus(schoolList):
 					studentsWaitingForBus += routeItem.busStop.studentsOnClass[i]
 
 			if studentsWaitingForBus > 45:
-				print "Error: Cantidad de alumnos (" + str(studentsWaitingForBus) + ") supera la capacidad del bus (45) de la ruta " + str(routeID) + " de la escuela " + school.name + "."
-				exit(1)
+				raise Exception("Error: Cantidad de alumnos (" + str(studentsWaitingForBus) + ") supera la capacidad del bus (45) de la ruta " + str(routeID) + " de la escuela " + school.name + ".")
 				
 
 

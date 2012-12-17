@@ -6,32 +6,55 @@ import validator
 
 
 #Get the proyect id
-PROYECT_ID = None
+DATA_ID = None
 if "--id" in sys.argv:
 	idIndex = sys.argv.index("--id") + 1
 	
 	if idIndex < len(sys.argv):
-		PROYECT_ID = util.convert_int(sys.argv[idIndex])
+		DATA_ID = util.convert_int(sys.argv[idIndex])
 
-if PROYECT_ID is None:
-	print "\nPlease specify the proyect_id using: --id\n"
+'''
+if DATA_ID is None:
+	print "\nPlease specify the DATA_id using: --id\n"
 	exit(1)
+'''
 
 #Get the envvars
-DATABASE_SERVER = util.get_from_env("DATABASE_SERVER", "192.168.1.100")
+DATABASE_SERVER = util.get_from_env("DATABASE_SERVER", "192.168.1.102")
 DATABASE_USERNAME = util.get_from_env("DATABASE_USERNAME", "routing")
 DATABASE_PASSWORD = util.get_from_env("DATABASE_PASSWORD", "routing")
 DATABASE_TYPE = util.get_from_env("DATABASE_TYPE", "Mysql")
 DETECTOR_ROOT = util.get_path_from_env("DETECTOR_ROOT", "../data")
 
+#Get the proyect ids
+dataIDs = None
+if DATA_ID is None:
+	dataIDs = util.get_all_proyect_ids_on_folder(DETECTOR_ROOT)
+else:
+	dataIDs = set([DATA_ID])
 
-#Process the files for the current proyect_id
-busStopsList, schoolList, routesList = processor.process_files(DETECTOR_ROOT, PROYECT_ID)
 
-#Validate the data:
-validator.validate_data(busStopsList, schoolList, routesList)
+#For each data-id, process data, validate it and add it to the database.
+for dataID in dataIDs:
 
-print "Archivos OK."
+	try:
+		#Process the files for the current proyect_id
+		print "\nLoading Data: " + str(dataID)
+		busStopsList, schoolList, routesList = processor.process_files(DETECTOR_ROOT, dataID)
+
+		#Validate the data:
+		validator.validate_data(busStopsList, schoolList, routesList)
+		print "All testes passed."
+
+		#Connect to the database
+
+
+
+	except Exception as e:
+		print e
+		print "Purging ...OK"
+
+	
 
 
 
