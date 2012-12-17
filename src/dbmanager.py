@@ -142,6 +142,29 @@ class DatabaseManager:
 		return schoolsList
 
 
+	def delete_route(routeList):
+		db = self.get_db_instance()
+		cursor = db.cursor()
+
+		for routeDetails in routeList:
+			
+			#Delete the related busstop
+			busStop = routeDetails.busStop
+			cursor.commit("delete from Paraderos where stop_id = %i, bucket = '%s'" % (busStop.bs_id, "BUSSTOP_LOAD_" + str(self.bucketNumber)))
+
+			#Delete the route details
+			cursor.commit("delete from Ruta where route_id = %i, stop_id = %i, school_id = %i, bucket = '%s'" % \
+				(routeDetails.r_id, routeDetails.bs_id, routeDetails.s_id, "ROUTES_LOAD_" + str(self.bucketNumber)))			
+
+		cursor.execute()
+
+		db.close()
+
+
+
+
+
+
 
 
 

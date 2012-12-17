@@ -4,7 +4,7 @@ import util
 import processor
 import validator
 import dbmanager
-
+import merger
 
 #Get the proyect id
 DATA_ID = None
@@ -54,9 +54,9 @@ for dataID in dataIDs:
 		dbSchoolsList = dbManager.load_data_from_database()
 
 		#Merge data
-		
+		merger.merge_data(dbSchoolsList, schoolList, dbManager)
 
-		
+
 		#print schoolList
 		#Save back to the database the modified data
 		#dbManager.store_data(schoolList)

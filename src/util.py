@@ -43,5 +43,8 @@ def get_all_data_ids_on_folder(folderPath):
         except:
             pass
 
-    return proyectIDs
+    proyectIDsList = list(proyectIDs)
+    proyectIDsList.sort()
+
+    return proyectIDsList
 
