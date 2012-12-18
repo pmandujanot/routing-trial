@@ -18,7 +18,7 @@ def get_path_from_env(var, default):
         return path
     else:
         #Print the error and exit the program
-        sys.stderr.write("\nERROR:\nEnvvar: " + var + "\nDefault: " + default + "\nPath: " + path + "\nPath is not a filename\n")
+        sys.stderr.write("\nERROR:\nEnvvar: " + var + "\nDefault: " + default + "\nPath: " + path + "\nPath is not a directory\n")
         exit(1)
 
 #Parse int

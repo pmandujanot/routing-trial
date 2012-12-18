@@ -41,8 +41,3 @@ def merge_routes(oldSchool, newSchool, dbManager):
 
 
 
-#quiza adicionalmente para los bustops se podria actualizar los ya existentes, pero como algo aparte.
-
-
-
-

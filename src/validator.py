@@ -51,7 +51,7 @@ def validate_bus_stops_on_routes(busStopsList, schoolList):
 
 	#Print the unrouted busstops
 	if len(busStops) > 0:
-		description = "\nError: Los siguientes paraderos no estan enrutados: \n"
+		description = "Error: Los siguientes paraderos no estan enrutados: \n"
 		for busStop in busStops:
 			description += "\t-" + str(busStop.bs_id)
 
@@ -110,15 +110,5 @@ def validate_amount_of_children_on_bus(schoolList):
 			if studentsWaitingForBus > 45:
 				raise Exception("Error: Cantidad de alumnos (" + str(studentsWaitingForBus) + ") supera la capacidad del bus (45) de la ruta " + str(routeID) + " de la escuela " + school.name + ".")
 				
-
-
-
-
-
-
-
-
-
-
 
 

@@ -227,8 +227,6 @@ def process_data(busStopsList, schoolList, routesList):
 				routesDict[route.r_id].append(route)
 
 
-		#print routesDict
-
 		#Sort all routes using the value of the order parameter
 		for routeList in  routesDict.values():	
 			routeList.sort(key = lambda route: route.order)
@@ -238,21 +236,6 @@ def process_data(busStopsList, schoolList, routesList):
 		#Add the routes to the school
 		school.routes = routesDict
 
-		#print routes
-
-
-
-
-
-
-
-
-
-#ahora que estoy abriendo el archivo y viendo las filas, tengo que ver dos cosas:
-#parsear que los elementos en cada ppsicion esten bien (con regex supongo, por ejemplo para las coordenadas gps (las comillas y el ;))
-#ver que el numero de elementos sea el correcto.
-#con respeco a oop, cada una de las entradas de esta tabla puede ser un objeto de una clase que represente un paradero. Quiza el mismo objeto puede saber como parsearse a si mismo de la lista y crearse correctamente.
-#en vez de imprimr en stdr y apagar el programa podria lanzar una excepcion la cual detector analizara y podra botar el programa si corresponde.
 
 
 

@@ -56,10 +56,9 @@ for dataID in dataIDs:
 		#Merge data
 		merger.merge_data(dbSchoolsList, schoolList, dbManager)
 
-
-		print dbSchoolsList
 		#Save back to the database the modified data
 		dbManager.store_data(schoolList)
+		print "Merging ..OK"
 
 
 	except Exception as e:
