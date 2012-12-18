@@ -32,9 +32,7 @@ def process_files(directory, data_id):
 		#Process the data:
 		process_data(busStopsList, schoolList, routesList)
 
-		#Check if everything is OK
-
-		return busStopsList, schoolList, routesList #{"busStops": busStopsList, "schools": schoolList, "routes": routesList}
+		return busStopsList, schoolList, routesList
 	else:
 		raise Exception("Error: No estan presentes los tres archivos con id: " + str(data_id))
 

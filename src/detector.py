@@ -14,11 +14,11 @@ if "--id" in sys.argv:
 	if idIndex < len(sys.argv):
 		DATA_ID = util.convert_int(sys.argv[idIndex])
 
-'''
-if DATA_ID is None:
-	print "\nPlease specify the DATA_id using: --id\n"
-	exit(1)
-'''
+
+#if DATA_ID is None:
+#	print "\nPlease specify the DATA_id using: --id\n"
+#	exit(1)
+
 
 #Get the envvars
 DATABASE_SERVER = util.get_from_env("DATABASE_SERVER", "192.168.1.102")
@@ -36,7 +36,7 @@ else:
 
 #Instance database manager
 dbManager = dbmanager.DatabaseManager(DATABASE_SERVER, DATABASE_USERNAME, DATABASE_PASSWORD)
-dbManager.get_new_bucket_number()
+dbManager.configure()
 
 #For each data-id, process data, validate it and merg it to the database.
 for dataID in dataIDs:
@@ -67,10 +67,3 @@ for dataID in dataIDs:
 		print "Purging ...OK"
 
 	
-
-#La idea podria ser que yo cargo de la base de datos, luego todas las cosas que cambiaron, como los tengo en objeto, podrias tener un bit dirty. luego con
-#eso se si las tengo que guardar a la base de datos o no. Esto es porque si el nuevo archivo que estoy cargando sobreescribe el nombre de un colegio o algo asi
-#al finla asumire que lo que manda son los parametros del rpimary key. 
-#Otra cosa importante es que cuando haga el merge es necesario agregar las nuevos datos que van apareciendo, por ejemplo una nueva ruta.
-#y si el numero de la ruta ya existe entonces se agrega reemplaza por la nueva ruta. Ahi hayq ue ver bien que se hace..
-

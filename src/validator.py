@@ -5,16 +5,16 @@ import math
 def validate_data(busStopsList, schoolList, routesList):
 
 	#Validation 1: Amount of children must not be greater than the capacity of the school
-	validation1Result = validate_amount_of_children_on_class(schoolList)
+	validate_amount_of_children_on_class(schoolList)
 
 	#Validation 2: All busstops must be enrouted
-	validation2Result = validate_bus_stops_on_routes(busStopsList, schoolList)
+	validate_bus_stops_on_routes(busStopsList, schoolList)
 
 	#Validation 3: All routes must not be longer than 35 kms
-	validation3Result = validate_route_length(schoolList)
+	validate_route_length(schoolList)
 
 	#Validation 4: Amount of children must not be greater than the capacity of the bus
-	validation4Result = validate_amount_of_children_on_bus(schoolList)
+	validate_amount_of_children_on_bus(schoolList)
 
 
 
