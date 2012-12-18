@@ -1,4 +1,4 @@
-"""Detector.py MVP for RoutingUC Test
+"""Detector.py final product for RoutingUC Test
 
 Author: Jose Tomas Robles Hahn
 """
@@ -12,10 +12,11 @@ from haversine import distance
 
 
 class Detector():
-	def __init__(self, dbconfig, problemId,tempDBname="myTempDB",debug=False):
+	def __init__(self, dbconfig, problemId, tempDBname="tempDB", productionDBname="prodDB", debug=False):
 		self.dbconfig = dbconfig
 		self.problemId = problemId
 		self.tempDBname = tempDBname
+		self.productionDBname = productionDBname
 		self.errorCount = 0
 		self.debug = debug
 
@@ -291,42 +292,65 @@ HAVING SUM_P_TOTAL > %s;"""
 		self.validateMaxRouteLength(cursor, cursor2)
 		self.validateBusCapacity(cursor)
 		
-		cursor.execute('DROP DATABASE ' + self.tempDBname) # Delete temporary database after validations have finished
 		dbconn.commit()
 		cursor.close()
 		cursor2.close()
 		dbconn.close()
 		
-	
+	def importIntoProductionDB(self):
+		"Import temporary database's current contents into production database"
+
+		dbconn = MySQLdb.connect(self.dbconfig["server"], user=self.dbconfig["username"], passwd=self.dbconfig["password"])
+		cursor = dbconn.cursor()
+		#cursor.execute('CREATE DATABASE IF NOT EXISTS ' + self.productionDBname)
+		cursor.execute('USE ' + self.productionDBname)
+		#cursor.execute('CREATE TABLE IF NOT EXISTS Paradero LIKE %s.Paradero' % self.tempDBname)
+		#cursor.execute('CREATE TABLE IF NOT EXISTS Escuela LIKE %s.Escuela' % self.tempDBname)
+		#cursor.execute('CREATE TABLE IF NOT EXISTS Ruta LIKE %s.Ruta' % self.tempDBname)
+		cursor.execute('INSERT INTO Paradero SELECT * FROM %s.Paradero' % self.tempDBname)
+		cursor.execute('INSERT INTO Escuela SELECT * FROM %s.Escuela' % self.tempDBname)
+		cursor.execute('INSERT INTO Ruta SELECT * FROM %s.Ruta' % self.tempDBname)
+		
+		dbconn.commit()
+		cursor.close()
+		dbconn.close()
+
 	def start(self):
 		"Import CSV files into temporary database and run validation tests"
 
 		self.importIntoTempDB()
 		self.runValidations()
-
+		if self.errorCount == 0:
+			print "*** Importing problem %s data into production database" % self.problemId
+			self.importIntoProductionDB()
+		
+		# Delete temporary database after data has been copied
+		dbconn = MySQLdb.connect(self.dbconfig["server"], user=self.dbconfig["username"], passwd=self.dbconfig["password"])
+		cursor = dbconn.cursor()
+		cursor.execute('DROP DATABASE ' + self.tempDBname)
+		dbconn.commit()
+		cursor.close()
+		dbconn.close()
+		
 
 if __name__ == "__main__":
 	dbconfig = {"server": os.environ['DATABASE_SERVER'],
-					"username": os.environ['DATABASE_USERNAME'],
-					"password": os.environ['DATABASE_PASSWORD']}
-
-	if len(sys.argv) == 3 and sys.argv[1] == "--id" and sys.argv[2]:
-		if os.path.isfile(sys.argv[2]+"-P.csv") \
-			and os.path.isfile(sys.argv[2]+"-E.csv") \
-			and os.path.isfile(sys.argv[2]+"-R.csv"):
-			
-			print "**** Creating Detector for Problem %s ..." % sys.argv[2]
-			d = Detector(dbconfig, sys.argv[2])
-			print "**** Starting Detector..."
-			d.start()
-			
-			if d.errorCount == 0:
-				print "**** SUCCESS: CSV files have passed validation ****"
-			else:
-				print "**** FAILURE: CSV files have %s validation error(s) ****" % d.errorCount
-			
+				"username": os.environ['DATABASE_USERNAME'],
+				"password": os.environ['DATABASE_PASSWORD']}
+		
+	csvFiles = os.listdir(os.environ['DETECTOR_ROOT'])
+	problemIds = set([fn[:-6] for fn in csvFiles])
+	
+	os.chdir(os.environ['DETECTOR_ROOT'])
+	
+	for p in problemIds:
+		print "*********** Running detector for problem %s ************" % p
+		d = Detector(dbconfig, p)
+		d.start()
+	
+		if d.errorCount == 0:
+			print "*** SUCCESS: CSV files have passed validation"
 		else:
-			print "ERROR: Verify that files %s-P.csv, %s-E.csv, %s-R.csv exist" % (sys.argv[2], sys.argv[2], sys.argv[2])
-	else:
-		print """Usage: %s --id <Problem_ID>
-Example: %s --id 2""" % (sys.argv[0], sys.argv[0])
+			print "*** FAILURE: CSV files have %s validation error(s)" % d.errorCount
+			
+	print "*************** Finished ****************"
