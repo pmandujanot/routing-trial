@@ -76,7 +76,7 @@ class DatabaseManager:
 		bucketNumber += 1
 		db.close()
 
-		self.bucketNumber = bucketNumber - 1
+		self.bucketNumber = bucketNumber
 		return bucketNumber
 
 
@@ -142,7 +142,7 @@ class DatabaseManager:
 		return schoolsList
 
 
-	def delete_route(routeList):
+	def delete_route(self, routeList):
 		db = self.get_db_instance()
 		cursor = db.cursor()
 
@@ -150,14 +150,13 @@ class DatabaseManager:
 			
 			#Delete the related busstop
 			busStop = routeDetails.busStop
-			cursor.commit("delete from Paraderos where stop_id = %i, bucket = '%s'" % (busStop.bs_id, "BUSSTOP_LOAD_" + str(self.bucketNumber)))
+			cursor.execute("delete from Paradero where stop_id = %i and bucket = '%s'" % (busStop.bs_id, "BUSSTOP_LOAD_" + str(self.bucketNumber)))
 
 			#Delete the route details
-			cursor.commit("delete from Ruta where route_id = %i, stop_id = %i, school_id = %i, bucket = '%s'" % \
+			cursor.execute("delete from Ruta where route_id = %i and stop_id = %i and school_id = %i and bucket = '%s'" % \
 				(routeDetails.r_id, routeDetails.bs_id, routeDetails.s_id, "ROUTES_LOAD_" + str(self.bucketNumber)))			
 
-		cursor.execute()
-
+		db.commit()
 		db.close()
 
 

@@ -9,7 +9,9 @@ def merge_data(originalSchoolsList, newSchoolsList, dbManager):
 		#If there's not another school with the same ID, we simply append the new school. If there is another school, we must merge them:
 		if len(oldSchooldWithSameID) == 0:
 			originalSchoolsList.append(newSchool)
+			print "New: "+str(newSchool)
 		elif len(oldSchooldWithSameID) == 1:
+			print "New: "+str(newSchool)
 			merge_schools(originalSchoolsList, oldSchooldWithSameID[0], newSchool, dbManager)
 		else:
 			raise Exception("Duplicate School ID (%i) on the Database" % (newSchool.s_id))
@@ -38,7 +40,8 @@ def merge_routes(oldSchool, newSchool, dbManager):
 
 
 
-#quiza adicionalmente para los bustops se podría actualizar los ya existentes, pero como algo aparte.
+#quiza adicionalmente para los bustops se podria actualizar los ya existentes, pero como algo aparte.
+#debiera hacer un init del servidor en el cual genera las tabla si es que no as tiene
 
 
 
